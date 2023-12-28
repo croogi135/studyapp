@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+{{ block.super }}
+<div class="header-links">
+    <a href="{% url 'submission_list' %}">Submission Approval</a>
+</div>
+
+{% endblock %}

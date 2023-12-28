@@ -1,0 +1,17 @@
+{% extends "admin/base_site.html" %}
+
+{% block title %}Admin Approval - {{ block.super }}{% endblock %}
+
+{% block content %}
+    <h1>Admin Approval</h1>
+    <p>Review and approve submissions below:</p>
+    {% if submissions %}
+        <div class="row">
+            {% for submission in submissions %}
+                {% include 'studyapp/templates/admin/submission_component.html' %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>There are no unapproved submissions.</p>
+    {% endif %}
+{% endblock %}

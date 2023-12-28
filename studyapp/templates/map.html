@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <script src="https://maps.googleapis.com/maps/api/js?key="></script>
+    <style>
+        #map-container {
+            display: flex;
+        }
+        #map {
+            flex: 3;
+            height: 500px; 
+        }
+        #side-panel {
+            flex: 1; 
+            height: 500px;
+            overflow: auto;
+        }
+        #side-panel-container {
+            display: flex;
+            height: 500px;
+            overflow: auto;
+            flex-direction: column;
+        }
+        .study-spot {
+            cursor: pointer;
+        }
+        .spot_box2.highlighted {
+        box-shadow: 0px 0px 10px rgba(255, 138, 65);
+        }
+        .highlighted {
+            background-color: #f0f0f0; /* Highlighted background color */
+        }
+    </style>
+    <div class="container mt-4">
+        <h1 class="mb-2" style="font-size: 24px; font-weight: bold;">Study Spot Map</h1>
+        <p class="small mb-4">Move around the map to view study spot pins!</p>
+    </div>
+
+    <div id="map-container">
+        <div id="map" ></div>
+        <div id="side-panel-container">
+        <h1 class="mb-2" style="font-size: 24px; font-weight: bold;">Study Spot List</h1>
+            <form method="GET" action="#" onsubmit="searchBuildings(); return false;">
+            <label for="building-search">Search Building:</label>
+            <input type="text" id="building-search" name="query" placeholder="Enter building name">
+        </form>
+        <div id="side-panel" >
+            </br>
+            {% for key, data in unique_lat_lng.items %}
+            <div class="spot_box2" id="spot_box_{{ data.building }}">
+                <div>
+                    <h4>{{ data.building }}</h4>
+                    <p>Press to Learn More!</p>
+                    <div class="ratings" id="ratings_{{ data.building }}" style="display: none;">
+                        <p>Average Rating: {{ data.avg_ratings.rating__avg|default:"N/A"|floatformat:2 }}</p>
+                        <p>Average Noise Level: {{ data.avg_ratings.noise_level__avg|default:"N/A"|floatformat:2 }}</p>
+                        <p>Average Crowdedness: {{ data.avg_ratings.crowdedness__avg|default:"N/A"|floatformat:2 }}</p>
+                        <p>Average Comfort: {{ data.avg_ratings.comfort__avg|default:"N/A"|floatformat:2 }}</p>
+                        <p>Average Location: {{ data.avg_ratings.location__avg|default:"N/A"|floatformat:2 }}</p>
+                        <a id="details_link_{{ data.building }}" href="{% url 'building_detail' building_name=data.building %}">View Details</a> 
+                        {% if user.is_authenticated %}
+                            <a id="submit_{{ data.building }}" href="{% url 'submit' %}">Submit Review</a> 
+                        {% endif %}
+                    </div>
+                    
+                </div>
+                </div>
+                </br>
+                {% endfor %}
+        </div>
+    </div>
+    </div>
+
+    <script type="text/JavaScript">
+        document.getElementById('building-search').addEventListener('input', function () {
+        searchBuildings();
+    });
+
+    function searchBuildings() {
+        var query = document.getElementById('building-search').value.toLowerCase();
+
+        document.querySelectorAll('.spot_box2').forEach(function(spotBox) {
+            var building = spotBox.id.replace('spot_box_', '').toLowerCase();
+            if (building.includes(query)) {
+                spotBox.style.display = 'block';
+            } else {
+                spotBox.style.display = 'none';
+            }
+        });
+    }
+        var uniqueLatLngSpots = JSON.parse('{{ unique_spots_json|safe }}');
+        var markers = [];
+        var highlight=null;
+        var highlightMarker = null; 
+var highlightSpotBox = null;
+        function initMap() {
+            var mapCenter = { lat: 38.036524151504366, lng: -78.50577886730416 };
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: mapCenter,
+                zoom: 15, 
+            });
+            uniqueLatLngSpots.forEach(function(spot) {
+                var marker = new google.maps.Marker({
+                    position: { 
+                        lat: parseFloat(spot.lat), 
+                        lng: parseFloat(spot.lng) 
+                    },
+                    map: map,
+                    title: spot.building
+                });
+                markers.push(marker);
+            marker.addListener('click', function () {
+                selectSpot(spot.building);
+            });
+            });
+            var markerData = [
+            { lat: 38.03647345013304, lng: -78.50591297774137, title: 'Clem Library' },
+            { lat: 38.032001291133525, lng:-78.5010373592052, title: 'Claude Moore Health Sciences Library' },
+            { lat: 38.033484804382084, lng: -78.50835711075851, title: 'Brown Library' },
+            { lat: 38.03960276609041, lng: -78.50320726953301, title: 'Fine Arts Library' },
+            { lat: 38.03508933996949, lng: -78.50056529341624, title: '1515' },
+            { lat: 38.03552242123666, lng: -78.50089788732872, title: 'Starbucks on the Corner' },
+            { lat: 38.03023585265591, lng: -78.50366794383956, title: 'Student Health' },
+            { lat: 38.03314002052289, lng: -78.5101310536635, title: 'Thorton' },
+            { lat: 38.03416028143457, lng: -78.5128909093462, title: 'Gilmer' },
+            { lat: 38.03595176520374, lng: -78.5063409549389, title: 'Newcomb' },
+            { lat: 38.03562525177882, lng: -78.50343659523769, title: 'Rotunda' },
+            { lat: 38.03389713901005, lng: -78.49847450854814, title: 'Graduate Cafe' },
+            { lat: 38.031667485843414, lng: -78.51080294702182, title: 'Rice' },
+            ];
+            markerData.forEach(function (data) {
+            var marker = new google.maps.Marker({
+                position: { lat: data.lat, lng: data.lng },
+                title: data.title,
+            });
+            markers.push(marker);
+            marker.addListener('click', function () {
+                selectSpot(data.building);
+            });
+        });
+    function selectSpot(building) {
+        document.querySelectorAll('.spot_box2').forEach(function (spotBox) {
+        spotBox.classList.remove('highlighted');
+        });
+        if (highlight !== null) {
+        highlight.setIcon(null);
+        }
+        markers.forEach(function (marker) {
+            if (marker.getTitle() === building) {
+                marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+                highlight = marker; // Update the highlighted marker
+            } else {
+                marker.setIcon(null);
+            }
+            if (highlightSpotBox !== null) {
+        highlightSpotBox.classList.remove('highlighted');
+    }
+            var spotBox = document.getElementById('spot_box_' + building);
+            if (spotBox) {
+                spotBox.parentElement.prepend(spotBox);
+                spotBox.classList.add('highlighted');
+                highlightSpotBox = spotBox; 
+                spotBox.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    } 
+    function highlightSpotBoxAndMarker(building) {
+        document.querySelectorAll('.spot_box2').forEach(function (spotBox) {
+        spotBox.classList.remove('highlighted');
+        });
+    if (highlightSpotBox !== null) {
+        highlightSpotBox.classList.remove('highlighted');
+    }
+    if (highlightMarker !== null) {
+        highlightMarker.setIcon(null);
+    }
+    markers.forEach(function (marker) {
+        if (marker.getTitle() === building) {
+            marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png');
+            highlightMarker = marker;
+            highlight=marker; // Update the highlighted marker
+        } else {
+            marker.setIcon(null);
+        }
+    });
+
+    var spotBox = document.getElementById('spot_box_' + building);
+    if (spotBox) {
+        spotBox.parentElement.prepend(spotBox);
+        spotBox.classList.add('highlighted');
+        highlightSpotBox = spotBox; 
+        spotBox.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+var building_drop=null;
+document.querySelectorAll('.spot_box2').forEach(function (spotBox) {
+    spotBox.addEventListener('click', function () {
+        var building = spotBox.id.replace('spot_box_', ''); 
+        highlightSpotBoxAndMarker(building);
+        var boxContainer = spotBox.parentElement;
+        boxContainer.scrollTop = 0;
+        var detailsLink = document.getElementById('details_link_' + building);
+        var ratingsDiv = document.getElementById('ratings_' + building);
+        var sub = document.getElementById('submit_' + building);
+        if (ratingsDiv.style.display === 'none' || ratingsDiv.style.display === '') {
+            ratingsDiv.style.display = 'block';
+            detailsLink.style.display = 'block';
+            sub.style.display='block';
+        }
+        else {
+            ratingsDiv.style.display = 'none';
+            detailsLink.style.display = 'none';
+            sub.style.display='none';
+        }
+        document.querySelectorAll('.spot_box2').forEach(function (otherSpotBox) {
+            var otherBuilding = otherSpotBox.id.replace('spot_box_', '');
+            if (otherBuilding !== building) {
+                var sub2= document.getElementById('submit_' + otherBuilding);
+                var detailsLink2 = document.getElementById('details_link_' + otherBuilding);
+                var otherRatingsDiv = document.getElementById('ratings_' + otherBuilding);
+                if (otherRatingsDiv) {
+                    otherRatingsDiv.style.display = 'none';
+                    detailsLink2.style.display = 'none';
+                    sub2.style.display='block';
+                }
+            }
+        });
+    });
+});
+ }
+        google.maps.event.addDomListener(window, 'load', initMap);
+    </script>
+{% endblock %}

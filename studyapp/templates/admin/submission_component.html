@@ -1,0 +1,24 @@
+<section class="container mt-3 mb-3">
+    <div class="card">
+        <div class="card header bg-primary bg-gradient text-white">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h3 class="card-title">{{ submission.__str__ }}</h3>
+                    <h5 class="card-subtitle text-light">Submitted by: {{ submission.submitted_by }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="accordian mb-3">
+                <p>Date Submitted: {{ submission.submission_date }}</p>
+                <p>Location/Description: {{ submission.room_number }}</p>
+                <p>School: {{ submission.school }}</p>
+                <form method="post" action="{% url 'admin_submission' %}">
+                    {% csrf_token %}
+                    {{ form }}
+                    <input type="submit" value="Approve">
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

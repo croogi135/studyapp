@@ -1,0 +1,47 @@
+<section class="container mt-3 mb-3">
+    <div class="card">
+        <div class="card header bg-primary bg-gradient text-white">
+            <div class="d-flex justify-content-between">
+                <div>
+                    <h3 class="card-title">{{ studyspot.building }} {{ studyspot.room_number }}</h3>
+                    <!--<h5 class="card-subtitle text-light">Submitted by: {{ studyspot.submitted_by }}</h5>-->
+                </div>
+                <form method="post" action="{% url 'studyspot_list' %}">
+                    {% csrf_token %}
+                    <div class="dropdown dropend">
+                        <button class="btn btn-light" type="button" data-bs-toggle="dropdown">
+                            <i class="bi fs-3 bi-pencil-square"></i>
+                        </button>
+
+                        <div class="dropdown-menu py-3 px-4">
+                            <h6 class="dropdown-header">Edit Study Spot:</h6>
+                            <div class="dropdown-divider"></div>
+                            <label>
+                                Building:
+                                <input class="text" name="building" value="{{ studyspot.building }}">
+                            </label>
+                            <label>
+                                Room Number/Location:
+                                <input class="text" name="room_number" value="{{ studyspot.room_number }}">
+                            </label>
+                            <div class="dropdown-divider"></div>
+                            <button class="btn btn-success" type="submit">Update</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="accordian mb-3">
+                <form method="post" action="{% url 'studyspot_list' %}">
+                <p>Date Submitted: {{ studyspot.submission_date }}</p>
+                <p>Room Number/Location: {{ studyspot.room_number }}</p>
+                <button class="btn btn-info view-spot" data-spot-id="{{ studyspot.lat }}_{{ studyspot.lng }}">View Spot</button>
+                    {% csrf_token %}
+                    {{ form }}
+                    <input class="btn btn-primary" type="submit" value="Approve">
+                </form>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  #title {
+    text-align: center;
+  }
+  .spot_box2 {
+    background-color: rgba(255,255,255);
+    box-sizing: border-box;
+    padding: 0;
+    flex-direction: column;
+    cursor: pointer;
+    display: flex;
+    width: 350px; /* Adjust the width as needed */
+    padding: 10px;
+    margin: 10px;
+    
+}
+.spot_box2:hover {
+    box-shadow: 0px 0px 10px rgba(255, 138, 65);
+}
+  #map-container {
+      display: flex;
+  }
+  #map {
+      flex: 3;
+      height: 500px; 
+  }
+  #side-panel {
+     
+      height: 500px;
+      overflow: auto;
+  }
+  #side-panel-container {
+      display: flex;
+      height: 500px;
+      overflow: auto;
+      flex-direction: column;
+  }
+
+  .study-spot {
+      cursor: pointer;
+  }
+  .spot_box2.highlighted {
+  box-shadow: 0px 0px 10px rgba(255, 138, 65);
+  }
+  .highlighted {
+      background-color: #f0f0f0; /* Highlighted background color */
+  }
+
+</style>
+<head>
+  <title>{{ building_name }}</title>
+</head>
+<div id="title">
+  <h1>{{ building_name }}</h1>
+  <p class="small mb-2" style="font-size: 16px; color: blue;"> A lower noise level indicates a louder area and a lower crowdedness level indicates a more crowded area
+  </p>
+</div>
+<div id="map-container">
+  <div id="map" >
+    <h3> Average Ratings:</h3>
+    <p>Average Rating: {{ avg_ratings.rating__avg }}</p>
+    <p>Average Noise Level: {{ avg_ratings.noise_level__avg }}</p>
+    <p>Average Crowdedness: {{ avg_ratings.crowdedness__avg }}</p>
+    <p>Average Comfort: {{ avg_ratings.comfort__avg }}</p>
+    <p>Average Location: {{ avg_ratings.location__avg }}</p>
+    <h3>Features:</h3>
+    <p>Most Common Parking: {{ most_common_parking }}</p>
+    <p>Most Common Hours: {{ most_common_hours }}</p>
+    <h3>Comments:</h3>
+    {% if description %}
+    <ul>
+        {% for comment in description %}
+        {% if comment.description %}
+        <li>{{ comment.description }}</li>
+    {% endif %}
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No comments available.</p>
+{% endif %}
+  </div>
+  
+  <div id="side-panel-container">
+      <div id="side-panel" >
+        <h3> Rooms:</h3>
+      </br>
+      {% for room in room_data %}
+      <div class="spot_box2" id="spot_box_{{ data.building }}">
+          <div>
+              <h4>Room {{ room.room_number }}</h4>
+              <p>Press to Learn More!</p>
+              <div class="ratings" id="ratings_{{ room.room }}" style="display: none;">
+              {% if room.reviews %}
+                {% if room.avg_ratings.rating__avg %}
+      <p>Average Rating: {{ room.avg_ratings.rating__avg }}</p>
+    {% endif %}
+    {% if room.avg_ratings.noise_level__avg %}
+      <p>Average Noise Level: {{ room.avg_ratings.noise_level__avg }}</p>
+    {% endif %}
+    {% if room.avg_ratings.crowdedness__avg %}
+      <p>Average Crowdedness: {{ room.avg_ratings.crowdedness__avg }}</p>
+    {% endif %}
+    {% if room.avg_ratings.comfort__avg %}
+      <p>Average Comfort: {{ room.avg_ratings.comfort__avg }}</p>
+    {% endif %}
+    {% if room.avg_ratings.location__avg %}
+      <p>Average Location: {{ room.avg_ratings.location__avg }}</p>
+    {% endif %}
+    {% if room.room_description %}
+      <h5>Comments:</h5>
+      <ul>
+        {% for comment in room.room_description %}
+          <li>{{ comment.description }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No comments for this room.</p>
+    {% endif %}
+  {% else %}
+    <p>No reviews for this room.</p>
+  {% endif %} 
+</div>   
+          </div>
+          </div>
+          </br>
+          {% endfor %}
+  </div>
+</div>
+</div>
+<script type="text/JavaScript">
+  document.querySelectorAll('.spot_box2').forEach(function (roomBox) {
+    roomBox.addEventListener('click', function () {
+      var roomDetails = roomBox.querySelector('.ratings');
+      if (roomDetails) {
+        if (roomDetails.style.display === 'none' || roomDetails.style.display === '') {
+          roomDetails.style.display = 'block';
+        } else {
+          roomDetails.style.display = 'none';
+        }
+      }
+    });
+  });
+</script>
+
+{% endblock %}

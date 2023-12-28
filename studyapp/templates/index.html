@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+{% load static %}
+
+{% load bootstrap5 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'polls/style.css' %}">
+    <title>UVA Study Spots</title>
+</head>
+<body>
+    <div class="side-panel">
+        <h1>UVA Study Spots</h1>
+        <p>Find the perfect spot to study on campus. Use our app to view a map of 
+            student-submitted study spots, read reviews, and submit new spots of your own!</p>
+            {% if not user.is_authenticated %}
+            <p class="small mb-4" style="color: red; font-size: 20px;">Log in to gain full access!</p>
+            <form action="{% provider_login_url 'google' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" id="google-sign-in-button">
+                    <img src="{% static 'polls/googlesign.png' %}" alt="Google Sign-In" width="180" height="50">
+                </button>
+             </form>
+            {% endif %}
+        </div>
+    <div class="main-content">
+        
+        
+    </div>
+   
+    <!-- </br>
+        {% for spot in spots %}
+            <div class="spot_box">
+                <div>
+                {% if spot.room_number %}
+                <h2> {{spot.building}} {{spot.room_number}}</h2>
+                {% else %}
+                <h2> {{spot.building}} </h2>
+                {% endif %}
+                <a class= " btn-light text-dark nav-link item_link" href="{% url 'map' %}">Have A Closer Look...</a>
+                </div>
+            </div>
+        </br>
+
+
+        {% endfor %} -->
+    </div>
+</body>
+</html>
+
+{% endblock %}

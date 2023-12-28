@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+{% csrf_token %}
+{% load bootstrap5 %}
+{% bootstrap_javascript %}
+{% block content %}
+{% if user.is_authenticated %}
+<script src="https://maps.googleapis.com/maps/api/js?key="></script>
+<style>
+        #map-container {
+            display: flex;
+        }
+        #map {
+            flex: 3;
+            height: 500px; 
+        }
+        #side-panel {
+            flex: 1; 
+            height: 100%;
+            overflow: auto; 
+        }
+    </style>
+    <div class="container mt-4">
+        <h1 class="mb-2" style="font-size: 28px;">Submit a Spot!</h1>
+        <p class="small mb-2" style="font-size: 15px;">Choose a location or add a new location!</p>
+        <button id="add-new-pin">Drop New Pin</button>
+        <button id="remove-pin">Remove Pin</button>
+    </div>
+
+    <div id="map-container">
+        <div id="map" ></div>
+        <div id="side-panel" >
+            <ul id="study-spot-list">
+                <form action="" method="post"> 
+                    {% csrf_token %}
+                    <p class="small mb-2" style="font-size: 16px; color: blue;">All fields are required unless stated as optional. Make sure to choose an existing spot on the map or drop a new pin!</p>
+                    {{form.as_p}}
+                    {{spot_form.management_form}}
+                    <h5>Submit a Review</h5>
+                    <p class="small mb-2" style="font-size: 16px; color: blue;">5 stars means the best, quiet, not crowded, comfortable, and good location! </p>
+                    {{ review_form.as_p }}
+                    <input class = "btn btn-dark send" type="submit" value="Save"/>
+                </form>
+            </ul>
+        </div>
+    </div>
+
+<script>
+    function initMap() {
+    var mainmap;  
+    var markers = [];
+    var newMarker = null;
+    var selectedMarker = null;
+        var mapCenter = { lat: 38.036524151504366, lng: -78.50577886730416 };
+        mainmap = new google.maps.Map(document.getElementById('map'), {
+            center: mapCenter,
+            zoom: 15,
+        });
+        var uniqueLatLngSpots = JSON.parse('{{ unique_spots_json|safe }}');
+        uniqueLatLngSpots.forEach(function (spot) {
+            var marker = new google.maps.Marker({
+                position: {
+                    lat: parseFloat(spot.lat),
+                    lng: parseFloat(spot.lng)
+                },
+                map: mainmap,
+                title: spot.building
+            });
+            markers.push(marker);
+            marker.addListener('click', function () {
+                handleMarkerClick(marker);
+            });
+        });
+        var markerData = [
+            { lat: 38.03647345013304, lng: -78.50591297774137, title: 'Clem Library' },
+            { lat: 38.032001291133525, lng:-78.5010373592052, title: 'Claude Moore Health Sciences Library' },
+            { lat: 38.033484804382084, lng: -78.50835711075851, title: 'Brown Library' },
+            { lat: 38.03960276609041, lng: -78.50320726953301, title: 'Fine Arts Library' },
+            { lat: 38.03508933996949, lng: -78.50056529341624, title: '1515' },
+            { lat: 38.03552242123666, lng: -78.50089788732872, title: 'Starbucks on the Corner' },
+            { lat: 38.03023585265591, lng: -78.50366794383956, title: 'Student Health' },
+            { lat: 38.03314002052289, lng: -78.5101310536635, title: 'Thorton' },
+            { lat: 38.03416028143457, lng: -78.5128909093462, title: 'Gilmer' },
+            { lat: 38.03595176520374, lng: -78.5063409549389, title: 'Newcomb' },
+            { lat: 38.03562525177882, lng: -78.50343659523769, title: 'Rotunda' },
+            { lat: 38.03389713901005, lng: -78.49847450854814, title: 'Graduate Cafe' },
+            { lat: 38.031667485843414, lng: -78.51080294702182, title: 'Rice' },
+            ];
+            markerData.forEach(function (data) {
+            var marker = new google.maps.Marker({
+                position: { lat: data.lat, lng: data.lng },
+                title: data.title,
+            });
+            markers.push(marker);
+            marker.addListener('click', function () {
+                handleMarkerClick(marker);
+            });
+        });
+
+    function handleMarkerClick(marker) {
+        if(newMarker){
+            newMarker.setMap(null);
+            newMarker=null;
+        }
+        if (selectedMarker && (selectedMarker !== marker)) {
+            selectedMarker.setIcon(null);
+        }
+        selectedMarker = marker;
+        const markerTitle = marker.getTitle();
+        const buildingInput = document.getElementById("id_building");
+        id_building.value = markerTitle;
+        selectedMarker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
+        var latInput = document.getElementById("id_lat");
+        var lngInput = document.getElementById("id_lng");
+        latInput.value = selectedMarker.getPosition().lat();
+        lngInput.value = selectedMarker.getPosition().lng();
+    }
+    document.getElementById("add-new-pin").addEventListener("click", function(event) {
+        id_building.value = null;
+        if (selectedMarker && selectedMarker.getIcon() === 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png') {
+            selectedMarker.setIcon(null);
+        }
+        if (newMarker) {
+            newMarker.setMap(mainmap);
+        }
+        else {
+            newMarker = new google.maps.Marker({
+                map: mainmap,
+                draggable: true
+            });
+        }
+        newMarker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
+        newMarker.setPosition({ lat: 38.03445368997917, lng: -78.50412899496848 });
+        google.maps.event.addListener(newMarker, 'dragend', function (event) {
+                updateLatAndLng(event.latLng.lat(), event.latLng.lng());
+        });
+    });
+    function updateLatAndLng(lat, lng) {
+        var latInput = document.getElementById("id_lat");
+        var lngInput = document.getElementById("id_lng");
+        latInput.value = lat;
+        lngInput.value = lng;
+    }
+    document.getElementById("remove-pin").addEventListener("click", function() {
+        id_building.value = null;
+        if (newMarker) {
+            newMarker.setMap(null); 
+            newMarker = null; 
+        }
+        if (selectedMarker && selectedMarker.getIcon() === 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png') {
+            selectedMarker.setIcon(null);
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const submissionForm = document.getElementById('submission-form');
+    submissionForm.addEventListener('submit', function() {
+        const buildingValue = document.getElementById('id_building').value;
+        const roomNumberValue = document.getElementById('id_room_number').value;
+        const reviewBuildingField = document.getElementById('id_review_building'); // Make sure this ID is set correctly
+        const reviewRoomNumberField = document.getElementById('id_review_room_number'); // Make sure this ID is set correctly
+        reviewBuildingField.value = buildingValue;
+        reviewRoomNumberField.value = roomNumberValue;
+    });
+});
+document.addEventListener('DOMContentLoaded', function () {
+    const starWidgets = document.querySelectorAll('.star-rating');
+    starWidgets.forEach(widget => {
+        const stars = widget.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.addEventListener('click', function () {
+                const rating = parseInt(star.getAttribute('data-value'));
+                stars.forEach(s => s.classList.remove('selected'));
+                console.log('Selected Rating:', rating);
+                for (let i = 0; i < rating; i++) {
+                    stars[i].classList.add('selected');
+                }
+                const fieldName = widget.getAttribute('data-field');
+                console.log('Selected field:', fieldName);
+                const ratingInput = document.querySelector(`[name="${fieldName}"]`);                console.log('Selected field:', ratingInput);
+                if (ratingInput) {
+                    ratingInput.value = rating;
+                    console.log('Value set successfully.');
+                }
+            });
+        });
+    });
+});
+
+    google.maps.event.addDomListener(window, 'load', initMap);
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if user.is_staff %}
+<div class="container mt-4">
+  <h1 class="mb-4" style="font-size: 24px;">Approve Reviews</h1>
+</div>
+
+<div id="review-container">
+  <form method="post" action="{% url 'review_approval' %}">
+      {% csrf_token %}
+      <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+              <thead class="thead-dark">
+                  <tr>
+                      <th style="width: 20%;">Building</th> <!-- Adjusted width -->
+                      <th style="width: 5%;">Room Number</th>
+                      <th>Rating</th>
+                      <th>Noise Level</th>
+                      <th style="width: 5%;">Busy</th> <!-- Adjusted width -->
+                      <th>Comfort</th>
+                      <th>Location</th>
+                      <th>Parking</th>
+                      <th>Hours</th>
+                      <th>Occupancy</th>
+                      <th>Description</th>
+                      <th>Is Approved</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for review in reviews %}
+                  <tr>
+                      <td>
+                          <input type="text" class="form-control" name="building_{{ review.id }}" value="{{ review.building }}">
+                      </td>
+                      <td>
+                          <input type="text" class="form-control" name="room_number_{{ review.id }}" value="{{ review.room_number }}">
+                      </td>
+                      <td>{{ review.rating }}</td>
+                      <td>{{ review.noise_level }}</td>
+                      <td>{{ review.crowdedness }}</td>
+                      <td>{{ review.comfort }}</td>
+                      <td>{{ review.location }}</td>
+                      <td>{{ review.parking }}</td>
+                      <td>{{ review.hours }}</td>
+                      <td>{{ review.occupancy }}</td>
+                      <td>{{ review.description }}</td>
+                      <td>
+                          <div class="form-check">
+                              <input type="checkbox" class="form-check-input" name="approve_review_{{ review.id }}" value="{{ review.id }}">
+                          </div>
+                      </td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+      </div>
+      <button type="submit" class="btn btn-primary">Approve Selected</button>
+  </form>
+</div>
+{% else %}
+<h1 class="mb-2" style="font-size: 28px;">You must be an admin to access this page</h1>
+{% endif %}
+  {% endblock %}

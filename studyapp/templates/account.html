@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="user-profile">
+    <h2>Account Info</h2>
+    <div class="basic-info">
+        <p>Name: {{ user.first_name }} {{ user.last_name }}</p>
+        <p>Email: {{ user.email }}</p>
+    </div>
+</div>
+<div class="user-section">
+    <h2>Bookmarked Study Spots</h2>
+    {% for spot in user.profile.bookmarked_spots.all %}
+        <p>{{ spot.name }}</p>
+    {% endfor %}
+</div>
+{% endblock %}
